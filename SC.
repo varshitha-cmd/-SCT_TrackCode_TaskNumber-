@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Applications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e1e2f;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+            text-transform: uppercase;
+        }
+        .quiz-container {
+            background: #2c2c3e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+        }
+        .option {
+            display: block;
+            background: #444;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .option:hover {
+            background: #666;
+        }
+        .correct {
+            background: green !important;
+        }
+        .wrong {
+            background: red !important;
+        }
+    </style>
+</head>
+<body>
+
+<h1>QUIZ APPLICATIONS</h1>
+
+<div class="quiz-container">
+    <h2 id="question">Question Text</h2>
+    <div id="options"></div>
+    <h3 id="score" style="display:none;"></h3>
+</div>
+
+<script>
+    const quizData = [
+        { question: "What is the capital of France?", options: ["London", "Paris", "Rome", "Berlin"], answer: "Paris" },
+        { question: "Which is the largest planet in our solar system?", options: ["Earth", "Jupiter", "Mars", "Venus"], answer: "Jupiter" },
+        { question: "Who invented the light bulb?", options: ["Thomas Edison", "Albert Einstein", "Newton", "Tesla"], answer: "Thomas Edison" },
+        { question: "What is the chemical symbol for water?", options: ["O2", "H2O", "CO2", "H2"], answer: "H2O" },
+        { question: "Which continent is known as the 'Dark Continent'?", options: ["Asia", "Africa", "Europe", "Australia"], answer: "Africa" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let attempt = 0;
+
+    function loadQuestion() {
+        document.getElementById("question").innerText = quizData[currentQuestion].question;
+        attempt = 0;
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = "";
+
+        quizData[currentQuestion].options.forEach(option => {
+            const button = document.createElement("div");
+            button.classList.add("option");
+            button.innerText = option;
+            button.onclick = () => checkAnswer(button, option);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function checkAnswer(selectedButton, selectedOption) {
+        const options = document.querySelectorAll(".option");
+
+        if (selectedOption === quizData[currentQuestion].answer) {
+            selectedButton.classList.add("correct");
+            score++;
+            disableOptions();
+            setTimeout(nextQuestion, 1000);
+        } else {
+            if (attempt === 0) {
+                selectedButton.classList.add("wrong");
+                selectedButton.style.pointerEvents = "none"; 
+                attempt++;
+            } else {
+                selectedButton.classList.add("wrong");
+                options.forEach(btn => {
+                    if (btn.innerText === quizData[currentQuestion].answer) {
+                        btn.classList.add("correct");
+                    }
+                });
+                disableOptions();
+                setTimeout(nextQuestion, 1000);
+            }
+        }
+    }
+
+    function disableOptions() {
+        const options = document.querySelectorAll(".option");
+        options.forEach(btn => btn.style.pointerEvents = "none");
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+            loadQuestion();
+        } else {
+            document.getElementById("question").style.display = "none";
+            document.getElementById("options").style.display = "none";
+            document.getElementById("score").style.display = "block";
+            document.getElementById("score").innerText = `🎯 Final Score: ${score}/${quizData.length}`;
+        }
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
