@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple To-Do Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #282c36; /* Dark background matching the image */
+            color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #1e1e24; /* Slightly lighter inner background */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #f0ad4e; /* Accent color */
+            margin-bottom: 25px;
+            border-bottom: 2px solid #555;
+            padding-bottom: 10px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #taskInput {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+        }
+        
+        button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Task List Styling */
+        #taskList {
+            list-style: none;
+            padding: 0;
+        }
+
+        #taskList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #333;
+            border-radius: 5px;
+            border-left: 5px solid #007bff; /* Indicator for new tasks */
+            transition: all 0.3s;
+        }
+
+        #taskList li.completed {
+            background: #444;
+            border-left: 5px solid #5cb85c;
+            opacity: 0.8;
+        }
+
+        .task-text {
+            flex-grow: 1;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        /* Task completed style */
+        #taskList li.completed .task-text {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .actions button {
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+        
+        .delete-btn {
+            background-color: #d9534f;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
+        
+        .edit-btn {
+            background-color: #f0ad4e;
+        }
+        
+        .edit-btn:hover {
+            background-color: #ec971f;
+        }
+        
+        .date-time {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-top: 3px;
+            display: block; 
+        }
+
+        /* Editing mode styles */
+        .editing .task-text {
+            display: none; 
+        }
+
+        .editing .edit-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #f0ad4e;
+            border-radius: 3px;
+            font-size: 16px;
+            background-color: #444;
+            color: white;
+            display: block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TO-DO WEB APP 📋</h1>
+        <div class="input-area">
+            <input type="text" id="taskInput" placeholder="Add, Edit, Set Date, Mark Complete...">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <ul id="taskList">
+            </ul>
+    </div>
+
+    <script>
+        // Key for local storage
+        const STORAGE_KEY = 'simpleTodoTasks';
+
+        // --- Local Storage Functions ---
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            tasks.forEach(task => renderTask(task));
+        }
+
+        function saveTasks() {
+            const taskElements = document.querySelectorAll('#taskList li');
+            const tasks = [];
+            taskElements.forEach(li => {
+                const textElement = li.querySelector('.task-text');
+                const dateElement = li.querySelector('.date-time');
+
+                tasks.push({
+                    text: textElement.childNodes[0].nodeValue.trim(), // Get only the text part
+                    dateTime: dateElement ? dateElement.textContent : '',
+                    completed: li.classList.contains('completed'),
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        }
+
+        // --- Core Application Logic ---
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const taskText = input.value.trim();
+
+            if (taskText === '') {
+                alert('Please enter a task.');
+                return;
+            }
+
+            // Simple way to set a creation/due date/time
+            const now = new Date();
+            const dateTimeString = `Added: ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+            const task = {
+                text: taskText,
+                dateTime: dateTimeString,
+                completed: false
+            };
+
+            renderTask(task);
+            saveTasks();
+            input.value = ''; // Clear the input field
+        }
+
+        function renderTask(task) {
+            const list = document.getElementById('taskList');
+            const li = document.createElement('li');
+
+            if (task.completed) {
+                li.classList.add('completed');
+            }
+
+            li.innerHTML = `
+                <span class="task-text" onclick="toggleComplete(this.parentNode)">
+                    ${task.text} 
+                    <span class="date-time">${task.dateTime}</span>
+                </span>
+                
+                <input type="text" class="edit-input" style="display:none;">
+
+                <div class="actions">
+                    <button class="edit-btn" onclick="editTask(this.parentNode.parentNode)">Edit</button>
+                    <button class="delete-btn" onclick="deleteTask(this.parentNode.parentNode)">Delete</button>
+                </div>
+            `;
+
+            list.appendChild(li);
+        }
+
+        function toggleComplete(li) {
+            li.classList.toggle('completed');
+            saveTasks();
+        }
+
+        function deleteTask(li) {
+            li.remove();
+            saveTasks();
+        }
+
+        function editTask(li) {
+            const taskTextSpan = li.querySelector('.task-text');
+            const editInput = li.querySelector('.edit-input');
+            const editButton = li.querySelector('.edit-btn');
+            
+            // Get the current text *excluding* the date-time span
+            const currentTextNode = taskTextSpan.childNodes[0];
+            const currentText = currentTextNode ? currentTextNode.nodeValue.trim() : '';
+
+            if (li.classList.contains('editing')) {
+                // SAVE operation
+                const newText = editInput.value.trim();
+                if (newText) {
+                    currentTextNode.nodeValue = newText + ' '; // Update the text part
+                    li.classList.remove('editing');
+                    editInput.style.display = 'none';
+                    taskTextSpan.style.display = 'block';
+                    editButton.textContent = 'Edit';
+                    saveTasks();
+                } else {
+                    alert('Task cannot be empty.');
+                }
+            } else {
+                // EDIT operation
+                li.classList.add('editing');
+                editInput.value = currentText;
+                editInput.style.display = 'block';
+                taskTextSpan.style.display = 'none';
+                editButton.textContent = 'Save';
+                editInput.focus();
+            }
+        }
+
+        // --- Initialization ---
+
+        // Load tasks when the page loads
+        window.onload = loadTasks;
+
+        // Allow adding task with 'Enter' key
+        document.getElementById('taskInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        });
+    </script>
+</body>
+</html>
